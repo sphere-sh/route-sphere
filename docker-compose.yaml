@@ -1,0 +1,5 @@
+services:
+  http_sphere:
+    image: bromanonld/route-sphere
+    ports:
+      - "8080:8080"
