@@ -1,5 +1,0 @@
-providers:
-  - name: "dynamic-configuration"
-    type: "file"
-    configuration:
-      path: "/etc/sphere/route/dynamic"

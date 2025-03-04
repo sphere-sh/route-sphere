@@ -11,16 +11,15 @@ RUN go build -o /app/main ./cmd/server/main.go
 
 FROM alpine:latest AS production
 
-ENV ROUTE_SPHERE_STATIC_CONFIGURATION_PATH=/etc/sphere/route/main.yaml
+ENV ROUTE_SPHERE_ENVIRONMENTS_PATH=/etc/route-sphere/environments.yaml
 
 # Create `/etc/sphere/route/dynamic`
 #
-RUN mkdir -p /etc/sphere/route/dynamic
+RUN mkdir -p /etc/route-sphere/dynamic
 
 # Put `.docker/main.yaml` in `/etc/sphere/route/`
 #
-COPY .docker/configuration/main.yaml /etc/sphere/route/main.yaml
-
+COPY .docker/configuration/environments.yaml /etc/route-sphere/environments.yaml
 
 
 WORKDIR /app
