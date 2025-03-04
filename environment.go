@@ -17,6 +17,9 @@ type Environment struct {
 	// ConfigurationPath - path to dynamic configuration file(s)
 	ConfigurationPath string `yaml:"configuration_path"`
 
+	// Domains - list of domains for the environment
+	Domains []Domain `yaml:"domains"`
+
 	// EntryPoints - list of entry points for the environment
 	EntryPoints []EntryPoint `yaml:"entryPoints"`
 
@@ -31,13 +34,6 @@ type Environment struct {
 }
 
 type ServerUpdate struct{}
-type EntryPoint struct {
-	// Name - unique name of the entry point
-	Name string `yaml:"name"`
-
-	// Address - address of the entry point
-	Address string `yaml:"address"`
-}
 
 // StartWatcher - Starts the environment watcher
 func (e Environment) StartWatcher(waitGroup *sync.WaitGroup) {

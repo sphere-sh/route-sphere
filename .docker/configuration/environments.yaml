@@ -2,10 +2,20 @@ environments:
   - name: "default"
     watch: true
     configuration_path: "/home/development/Desktop/learning-go/route-sphere/.docker/configuration/dynamic"
+    domains:
+      - url: "www.sphere.sh"
+        tls:
+          cert: localhost.pem
+          key: localhost-key.pem
+      - url: "localhost"
+        tls:
+          cert: localhost.pem
+          key: localhost-key.pem
     entryPoints:
       - name: "web"
-        address: ":80"
-      - name: "web-secure"
         address: ":443"
+        domains:
+          - "www.sphere.sh"
+          - "localhost"
     rules:
     services:

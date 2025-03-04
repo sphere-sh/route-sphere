@@ -94,8 +94,17 @@ func main() {
 	// Start the entry-point(s)
 	//
 	for _, entryPoint := range currentEnvironment.EntryPoints {
-		// todo: implement entry-point start
-		slog.Info("starting entry-point", "name", entryPoint.Name, "address", entryPoint.Address)
+
+		// Verify wait group configuration
+		//
+		err := entryPoint.VerifyConfiguration()
+		if err != nil {
+			slog.Error("entry-point configuration verification failed", "error", err.Error())
+			os.Exit(1)
+		}
+
+		waitGroup.Add(1)
+		go entryPoint.Start(&waitGroup)
 	}
 
 	// Open connections to the services
