@@ -1,5 +1,11 @@
 environments:
   - name: "default"
+    watch: true
+    configuration_path: "/home/development/Desktop/learning-go/route-sphere/.docker/configuration/dynamic"
     entryPoints:
+      - name: "web"
+        address: ":80"
+      - name: "web-secure"
+        address: ":443"
     rules:
     services:

@@ -78,12 +78,40 @@ func main() {
 		os.Exit(1)
 	}
 
-	slog.Info("Starting server..")
-
-	// Start watching the environment for configuration changes.
+	// When the watch flag is set to true, start the
+	// environment watcher.
 	//
-	waitGroup.Add(1)
-	go currentEnvironment.StartWatcher(&waitGroup)
+	if currentEnvironment.Watch {
+		slog.Info("starting environment watcher", "environment", currentEnvironment.Name)
+		waitGroup.Add(1)
+		go currentEnvironment.StartWatcher(&waitGroup)
+	}
+
+	// Server starting process.
+	//
+	slog.Info("starting server", "environment", currentEnvironment.Name)
+
+	// Start the entry-point(s)
+	//
+	for _, entryPoint := range currentEnvironment.EntryPoints {
+		// todo: implement entry-point start
+		slog.Info("starting entry-point", "name", entryPoint.Name, "address", entryPoint.Address)
+	}
+
+	// Open connections to the services
+	//
+	for _, service := range currentEnvironment.Services {
+		// todo: implement service start
+		slog.Info("starting service", "service", service)
+	}
+
+	// When the entry-points and services are started, we
+	// can start connecting them with route rule(s).
+	//
+	for _, rule := range currentEnvironment.Rules {
+		// todo: implement rule start
+		slog.Info("starting rule", "rule", rule)
+	}
 
 	waitGroup.Wait()
 }
