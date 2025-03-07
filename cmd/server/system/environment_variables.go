@@ -17,31 +17,31 @@ func EnvironmentVariableValidate(validators ...EnvironmentVariableValidator) err
 	return nil
 }
 
-func EnvironmentsYamlPathValidator() error {
-	environmentsYamlPath := os.Getenv("ROUTE_SPHERE_ENVIRONMENTS_PATH")
-	if environmentsYamlPath == "" {
-		return errors.New("ROUTE_SPHERE_ENVIRONMENTS_PATH is empty")
+func ConfigurationsYamlPathValidator() error {
+	configurationsYamlPath := os.Getenv("ROUTE_SPHERE_CONFIGURATIONS_PATH")
+	if configurationsYamlPath == "" {
+		return errors.New("ROUTE_SPHERE_CONFIGURATIONS_PATH is empty")
 	}
 
-	if !regexp.MustCompile("^/").MatchString(environmentsYamlPath) {
-		return errors.New("ROUTE_SPHERE_ENVIRONMENTS_PATH must match /")
+	if !regexp.MustCompile("^/").MatchString(configurationsYamlPath) {
+		return errors.New("ROUTE_SPHERE_CONFIGURATIONS_PATH must match /")
 	}
 
-	if _, err := os.Stat(environmentsYamlPath); os.IsNotExist(err) {
-		return errors.New("ROUTE_SPHERE_ENVIRONMENTS_PATH does not exist")
+	if _, err := os.Stat(configurationsYamlPath); os.IsNotExist(err) {
+		return errors.New("ROUTE_SPHERE_CONFIGURATIONS_PATH does not exist")
 	}
 
 	return nil
 }
 
-func EnvironmentsNameValidator() error {
-	environmentName := os.Getenv("ROUTE_SPHERE_ENVIRONMENT_NAME")
-	if environmentName == "" {
-		return errors.New("ROUTE_SPHERE_ENVIRONMENT_NAME is empty")
+func ConfigurationNameValidator() error {
+	configurationName := os.Getenv("ROUTE_SPHERE_CONFIGURATION_NAME")
+	if configurationName == "" {
+		return errors.New("ROUTE_SPHERE_CONFIGURATION_NAME is empty")
 	}
 
-	if !regexp.MustCompile("^[a-zA-Z]+$").MatchString(environmentName) {
-		return errors.New("ROUTE_SPHERE_ENVIRONMENT_NAME is invalid. It should contain only letters")
+	if !regexp.MustCompile("^[a-zA-Z]+$").MatchString(configurationName) {
+		return errors.New("ROUTE_SPHERE_CONFIGURATION_NAME is invalid. It should contain only letters")
 	}
 	return nil
 }

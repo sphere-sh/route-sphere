@@ -9,10 +9,10 @@ import (
 )
 
 var (
-	// environmentName - Name of the environment in which the server is running.
-	environmentName string
-	// environmentsYamlPath - Path pointing to the environments yaml file.
-	environmentsYamlPath string
+	// configurationsYamlPath - Path to the configurations yaml file.
+	configurationsYamlPath string
+	// configurationName - Name of the configuration to use.
+	configurationName string
 	// waitGroup - Wait group to wait for all goroutines to finish.
 	waitGroup sync.WaitGroup
 )
@@ -31,96 +31,78 @@ func init() {
 	// -----------------------------------------------------------------------
 
 	err := system.EnvironmentVariableValidate(
-		system.EnvironmentsYamlPathValidator,
-		system.EnvironmentsNameValidator,
+		system.ConfigurationsYamlPathValidator,
+		system.ConfigurationNameValidator,
 	)
 	if err != nil {
 		slog.Error("Environment variable validation failed", "error", err.Error())
 		os.Exit(1)
 	}
 
-	environmentName = os.Getenv("ROUTE_SPHERE_ENVIRONMENT_NAME")
-	environmentsYamlPath = os.Getenv("ROUTE_SPHERE_ENVIRONMENTS_PATH")
+	configurationsYamlPath = os.Getenv("ROUTE_SPHERE_CONFIGURATIONS_PATH")
+	configurationName = os.Getenv("ROUTE_SPHERE_CONFIGURATION_NAME")
 
 	waitGroup = sync.WaitGroup{}
 }
 
 func main() {
 
-	// Load environments yaml file
+	// Load configurations structure
 	//
-	environmentsYaml, _ := os.ReadFile(environmentsYamlPath)
-	environments, err := route_sphere.YamlToEnvironments(string(environmentsYaml))
+	configurationsYaml, _ := os.ReadFile(configurationsYamlPath)
+	configurations, err := route_sphere.ConfigurationYamlToStruct(string(configurationsYaml))
 	if err != nil {
-		panic(err.Error())
+		slog.Error("Error parsing configurations", "error", err.Error())
+		os.Exit(1)
 	}
 
-	// Grab the environment matching the current environment name.
+	// Grab the configuration matching the current configuration name.
 	//
-	var currentEnvironment route_sphere.Environment
-	for _, env := range environments.Items {
-		if env.Name == environmentName {
-			currentEnvironment = env
+	var currentConfiguration route_sphere.Configuration
+	for _, config := range configurations.Items {
+		if config.Name == configurationName {
+			currentConfiguration = *config
 			break
 		}
 	}
 
-	// Set channels on the environment.
+	// When the current configuration is not found, exit the program
 	//
-	currentEnvironment.ServerUpdateChannel = make(chan route_sphere.ServerUpdate)
-
-	// When the current environment is not found, exit the program
-	// with an error message notifying the user that the environment
-	// was not found.
-	//
-	if currentEnvironment.Name == "" {
-		slog.Error("environment not found", "name", environmentName)
+	if currentConfiguration.Name == "" {
+		slog.Error("Could not find configuration with the provided name.", "name", configurationName)
 		os.Exit(1)
 	}
 
-	// When the watch flag is set to true, start the
-	// environment watcher.
+	// Before we can start the providers we need to create a channel which
+	// the providers can use to notify the configuration of updates.
 	//
-	if currentEnvironment.Watch {
-		slog.Info("starting environment watcher", "environment", currentEnvironment.Name)
-		waitGroup.Add(1)
-		go currentEnvironment.StartWatcher(&waitGroup)
+	currentConfiguration.UpdateChannel = make(chan route_sphere.ConfigurationUpdate, 100)
+
+	// Start the listener for configuration updates
+	//
+	waitGroup.Add(1)
+	go currentConfiguration.ListenForConfigurationUpdates(&waitGroup)
+
+	// Start configuration watcher if `configuration.watch` is set the
+	// boolean value `true`.
+	//
+	for _, provider := range currentConfiguration.Providers {
+		if provider.Watch {
+			waitGroup.Add(1)
+			go provider.StartWatcher(&waitGroup, &currentConfiguration.UpdateChannel)
+		}
 	}
 
-	// Server starting process.
+	// Start entryPoints defined in the configuration
 	//
-	slog.Info("starting server", "environment", currentEnvironment.Name)
-
-	// Start the entry-point(s)
-	//
-	for _, entryPoint := range currentEnvironment.EntryPoints {
-
-		// Verify wait group configuration
-		//
-		err := entryPoint.VerifyConfiguration()
-		if err != nil {
-			slog.Error("entry-point configuration verification failed", "error", err.Error())
-			os.Exit(1)
-		}
-
+	for _, entryPoint := range currentConfiguration.EntryPoints {
 		waitGroup.Add(1)
 		go entryPoint.Start(&waitGroup)
 	}
 
-	// Open connections to the services
+	// Server initialization process.
 	//
-	for _, service := range currentEnvironment.Services {
-		// todo: implement service start
-		slog.Info("starting service", "service", service)
-	}
-
-	// When the entry-points and services are started, we
-	// can start connecting them with route rule(s).
-	//
-	for _, rule := range currentEnvironment.Rules {
-		// todo: implement rule start
-		slog.Info("starting rule", "rule", rule)
-	}
+	slog.Info("starting server", "configuration", currentConfiguration.Name)
 
 	waitGroup.Wait()
 }
