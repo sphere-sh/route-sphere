@@ -1,14 +1,4 @@
 configurations:
-  - name: default
-    providers:
-      - type: directory
-        watch: true
-        directory: "/home/development/Desktop/learning-go/route-sphere/.docker/configuration/dynamic"
-    entryPoints:
-      - name: "web"
-        address: ":1234"
-      - name: "websecure"
-        address: ":443"
-    domains: []
-    routers: []
-    services: []
+  name: asd12213123
+  description: 123213
+  providers: [ { type: directory, watch: true, directory: / }, { type: directory, watch: true, directory: example }, { type: directory, watch: true, directory: /123 } ]

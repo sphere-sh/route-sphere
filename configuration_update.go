@@ -1,7 +1,7 @@
 package route_sphere
 
 import (
-	"github.com/sphere-sh/go-struct-sync"
+	"github.com/sphere-sh/go-struct-sync/compare"
 	"log/slog"
 	"sync"
 )
@@ -29,6 +29,15 @@ func (c *Configuration) ListenForConfigurationUpdates(wg *sync.WaitGroup) {
 
 	updateImplementations := make(map[string]InMemoryConfigurationUpdater)
 	updateImplementations["domains.ADD"] = AddDomainConfigurationUpdater{}
+
+	// Compare the in-memory configuration with the provided configuration.
+	res, err := compare.CompareStructs(c, Configuration{})
+	if err != nil {
+		slog.Error("Error comparing configuration", "error", err)
+		return
+	}
+
+	slog.Info("Configuration updates found", "result", res)
 
 	for {
 		select {
