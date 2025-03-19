@@ -1,7 +1,1 @@
-# IDE-Specific Files
-#
 .idea/
-
-# Certificates
-#
-*.pem
