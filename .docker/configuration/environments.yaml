@@ -1,4 +1,0 @@
-configurations:
-  name: asd12213123
-  description: 123213
-  providers: [ { type: directory, watch: true, directory: / }, { type: directory, watch: true, directory: example }, { type: directory, watch: true, directory: /123 } ]

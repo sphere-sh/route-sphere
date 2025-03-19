@@ -1,0 +1,5 @@
+# Settings related to `route.sphere.sh` integration
+# into the Route Sphere server.
+#
+cloud:
+  enabled: true

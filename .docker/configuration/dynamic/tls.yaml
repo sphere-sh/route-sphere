@@ -1,5 +1,0 @@
-domains:
-  - url: "localhost"
-    tls:
-      cert: "localhost.pem"
-      key: "localhost-key.pem"
