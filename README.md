@@ -29,9 +29,6 @@ The easiest way to get started with Route Sphere is to use the official Docker i
 services:
   route_sphere:
     image: bromanonld/route-sphere:latest
-    environment:
-      - ROUTE_SPHERE_CLOUD_CLIENT_ID=<your-client-id>
-      - ROUTE_SPHERE_CLOUD_CLIENT_SECRET=<your-secret>
     ports:
       - "80:80"
       - "443:443" 

@@ -1,0 +1,8 @@
+services:
+  route_sphere:
+    image: bromanonld/route-sphere:latest
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - /etc/route-sphere/cli:/etc/route-sphere/cli
