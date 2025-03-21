@@ -5,7 +5,10 @@ import (
 	"os"
 	route_sphere "route-sphere"
 	"sync"
-	"time"
+)
+
+var (
+	waitGroup = sync.WaitGroup{}
 )
 
 func main() {
@@ -20,18 +23,21 @@ func main() {
 
 	// Then, we parse the configuration file into a Configuration struct.
 	//
-	_, err := route_sphere.ConfigurationFromYamlFile(os.Getenv("ROUTE_SPHERE_CONFIGURATIONS_PATH"))
+	config, err := route_sphere.ConfigurationFromYamlFile(os.Getenv("ROUTE_SPHERE_CONFIGURATIONS_PATH"))
 	if err != nil {
 		panic(err)
 	}
 
-	// Keep process running
+	// When cloud is enabled start with syncing configurations from the cloud.
 	//
-	wg := sync.WaitGroup{}
-	wg.Add(1)
+	if config.Cloud.Enabled {
+		// todo: implement cloud sync
+	}
 
-	time.Sleep(10000 * time.Minute)
+	// Start the Route Sphere server
+	//
 
-	wg.Wait()
+	// todo: implement route sphere server.
 
+	waitGroup.Wait()
 }

@@ -25,7 +25,8 @@ func main() {
 
 		// Connections related commands
 		//
-		ConnectionsList *cli_commands.ConnectionsList `arg:"subcommand:connections:list"`
+		ConnectionsList   *cli_commands.ConnectionsList   `arg:"subcommand:connections:list"`
+		ConnectionInstall *cli_commands.ConnectionInstall `arg:"subcommand:connections:install"`
 	}
 
 	arg.MustParse(&args)
@@ -52,6 +53,14 @@ func main() {
 
 	if args.AuthenticationLogout != nil {
 		args.AuthenticationLogout.Run(args.AuthenticationLogout)
+	}
+
+	if args.ConnectionsList != nil {
+		args.ConnectionsList.Run(args.ConnectionsList)
+	}
+
+	if args.ConnectionInstall != nil {
+		args.ConnectionInstall.Run(args.ConnectionInstall)
 	}
 
 }

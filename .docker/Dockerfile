@@ -20,6 +20,18 @@ COPY . .
 RUN go build -o /app/cli/main ./cmd/cli/main.go
 
 
+# Build configuration API binary
+#
+WORKDIR /app/configuration-api
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN go build -o /app/configuration-api/sphere-configuration ./cmd/configuration-api/main.go
+
+
 FROM alpine:latest AS production
 
 ENV ROUTE_SPHERE_DIRECTORY=/etc/route-sphere
@@ -36,10 +48,6 @@ RUN chown -R route-sphere:route-sphere $ROUTE_SPHERE_DIRECTORY
 RUN mkdir -p /app
 RUN chown -R route-sphere:route-sphere /app
 
-# Install openrc
-#
-RUN apk add --no-cache openrc
-
 # supervisord
 #
 RUN apk add --no-cache supervisor
@@ -50,5 +58,6 @@ WORKDIR /app
 
 COPY --from=builder /app/server/main .
 COPY --from=builder /app/cli/main /bin/route-sphere
+COPY --from=builder /app/configuration-api/sphere-configuration /bin/sphere-configuration
 
 CMD ["/usr/bin/supervisord"]
