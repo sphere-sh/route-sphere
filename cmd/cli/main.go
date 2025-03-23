@@ -101,7 +101,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	commands := commandGroup.GetFeatures()
+	commands := commandGroup.GetCommands()
 
 	if commands == nil {
 		slog.Error("CLI features not found")

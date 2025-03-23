@@ -10,12 +10,12 @@ import (
 const ErrInvalidStaticConfiguration = "INVALID_STATIC_CONFIGURATION"
 
 type CliCommandsGroup interface {
-	GetFeatures() interface{}
+	GetCommands() interface{}
 }
 
 type CloudCliCommands struct{}
 
-func (c *CloudCliCommands) GetFeatures() interface{} {
+func (c *CloudCliCommands) GetCommands() interface{} {
 	var args struct {
 		AuthenticationLogin  *cli_commands.AuthenticationLogin  `arg:"subcommand:authentication:login" help:"Login to the cloud provider"`
 		AuthenticationLogout *cli_commands.AuthenticationLogout `arg:"subcommand:authentication:logout" help:"Logout from the cloud provider"`
@@ -26,7 +26,7 @@ func (c *CloudCliCommands) GetFeatures() interface{} {
 
 type LocalCliCommands struct{}
 
-func (c *LocalCliCommands) GetFeatures() interface{} {
+func (c *LocalCliCommands) GetCommands() interface{} {
 	var args struct {
 	}
 	arg.MustParse(&args)
