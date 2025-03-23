@@ -23,7 +23,9 @@ func (c *CloudCliCommands) GetCommands() interface{} {
 
 		// Connection commands
 		//
-		ConnectionList *cli_commands.ConnectionList `arg:"subcommand:connection:list" help:"List all connections"`
+		ConnectionList      *cli_commands.ConnectionList      `arg:"subcommand:connection:list" help:"List all connections"`
+		ConnectionInstall   *cli_commands.ConnectionInstall   `arg:"subcommand:connection:install" help:"Install a connection"`
+		ConnectionUninstall *cli_commands.ConnectionUninstall `arg:"subcommand:connection:uninstall" help:"Uninstall a connection"`
 	}
 	arg.MustParse(&args)
 	return args
