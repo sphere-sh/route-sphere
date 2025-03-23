@@ -1,6 +1,7 @@
 package cli_commands
 
 import (
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 type AuthenticationLogout struct {
 }
 
-func (cmd *AuthenticationLogout) Run(args *AuthenticationLogout) {
+func (cmd *AuthenticationLogout) Run(args *AuthenticationLogout, ctx *context.Context) {
 
 	sessionFile, err := os.ReadFile("/etc/route-sphere/cli/session")
 	if err != nil {

@@ -1,6 +1,7 @@
 package cli_commands
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
@@ -15,7 +16,7 @@ type AuthenticationLogin struct {
 	Password string `arg:"positional,required"`
 }
 
-func (cmd *AuthenticationLogin) Run(args *AuthenticationLogin) {
+func (cmd *AuthenticationLogin) Run(args *AuthenticationLogin, ctx *context.Context) {
 	body := fmt.Sprintf(`{"email": "%s", "password": "%s"}`, args.Username, args.Password)
 
 	client := &http.Client{}

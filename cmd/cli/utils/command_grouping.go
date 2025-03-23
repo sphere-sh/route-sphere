@@ -19,6 +19,10 @@ func (c *CloudCliCommands) GetCommands() interface{} {
 	var args struct {
 		AuthenticationLogin  *cli_commands.AuthenticationLogin  `arg:"subcommand:authentication:login" help:"Login to the cloud provider"`
 		AuthenticationLogout *cli_commands.AuthenticationLogout `arg:"subcommand:authentication:logout" help:"Logout from the cloud provider"`
+
+		// Connection commands
+		//
+		ConnectionList *cli_commands.ConnectionList `arg:"subcommand:connection:list" help:"List all connections"`
 	}
 	arg.MustParse(&args)
 	return args

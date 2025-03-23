@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"gopkg.in/yaml.v3"
 	"log/slog"
 	"os"
@@ -92,7 +93,23 @@ func main() {
 
 	commands := commandGroup.GetCommands()
 
+	// Create context with session attached
+	//
+	ctx := context.Background()
+
+	// When session exists, add it to the context.
+	//
+	if cli_utils.HasSession() {
+		sessionString, err := cli_utils.GetSession()
+		if err != nil {
+			slog.Error("Failed to get session", "error", err)
+			os.Exit(1)
+		}
+		ctx = context.WithValue(ctx, "session", sessionString)
+	}
+
 	// Find and execute the selected command
+	//
 	cmdValue := reflect.ValueOf(commands)
 	cmdType := cmdValue.Type()
 
@@ -110,6 +127,8 @@ func main() {
 			if method.IsValid() {
 				// Create argument list - pass the command itself as the argument
 				args := []reflect.Value{fieldValue}
+				args = append(args, reflect.ValueOf(&ctx))
+
 				method.Call(args)
 			} else {
 				slog.Error("Command does not implement Run method", "command", fieldName)
