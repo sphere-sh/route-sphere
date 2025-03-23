@@ -2,6 +2,7 @@ package cli_utils
 
 import (
 	"errors"
+	"github.com/alexflint/go-arg"
 	cli_commands "route-sphere/cmd/cli/commands"
 	"route-sphere/configuration"
 )
@@ -9,27 +10,31 @@ import (
 const ErrInvalidStaticConfiguration = "INVALID_STATIC_CONFIGURATION"
 
 type CliCommandsGroup interface {
-	getFeatures() interface{}
+	GetFeatures() interface{}
 }
 
 type CloudCliCommands struct{}
 
-func (c *CloudCliCommands) getFeatures() interface{} {
-	return struct {
-		AuthenticationLogin *cli_commands.AuthenticationLogin `arg:"subcommand:login" help:"Login to the cloud provider"`
-	}{
-		AuthenticationLogin: &cli_commands.AuthenticationLogin{},
+func (c *CloudCliCommands) GetFeatures() interface{} {
+	var args struct {
+		AuthenticationLogin  *cli_commands.AuthenticationLogin  `arg:"subcommand:authentication:login" help:"Login to the cloud provider"`
+		AuthenticationLogout *cli_commands.AuthenticationLogout `arg:"subcommand:authentication:logout" help:"Logout from the cloud provider"`
 	}
+	arg.MustParse(&args)
+	return args
 }
 
 type LocalCliCommands struct{}
 
-func (c *LocalCliCommands) getFeatures() interface{} {
-	return struct{}{}
+func (c *LocalCliCommands) GetFeatures() interface{} {
+	var args struct {
+	}
+	arg.MustParse(&args)
+	return args
 }
 
-// GetCLICommands - function used to get CLI commands based on the static config.
-func GetCLICommands(staticConfiguration configuration.StaticConfiguration) (CliCommandsGroup, error) {
+// GetCLICommandGroup - function used to get CLI commands based on the static config.
+func GetCLICommandGroup(staticConfiguration configuration.StaticConfiguration) (CliCommandsGroup, error) {
 	var functionGroups = make(map[string]CliCommandsGroup)
 
 	// Add CLI commands groups here

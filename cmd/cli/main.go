@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/alexflint/go-arg"
 	"gopkg.in/yaml.v3"
 	"log/slog"
 	"os"
@@ -96,12 +95,17 @@ func main() {
 
 	// Get CLI features
 	//
-	feature, err := cli_utils.GetCLICommands(staticConfiguration)
+	commandGroup, err := cli_utils.GetCLICommandGroup(staticConfiguration)
 	if err != nil {
 		slog.Error("Failed to get CLI features", "error", err)
 		os.Exit(1)
 	}
 
-	arg.MustParse(feature)
+	commands := commandGroup.GetFeatures()
+
+	if commands == nil {
+		slog.Error("CLI features not found")
+		os.Exit(1)
+	}
 
 }
