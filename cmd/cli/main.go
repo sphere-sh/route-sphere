@@ -119,8 +119,6 @@ func main() {
 
 		// Check if this field is a pointer and not nil
 		if fieldValue.Kind() == reflect.Ptr && !fieldValue.IsNil() {
-			slog.Info("Executing command", "command", fieldName)
-
 			// Call Run() method if it exists
 			method := fieldValue.MethodByName("Run")
 			if method.IsValid() {
