@@ -66,4 +66,6 @@ func (cmd *AuthenticationLogin) Run(args *AuthenticationLogin) {
 	if err != nil {
 		slog.Error("Failed to write session file", "error", err)
 	}
+
+	slog.Info("Successfully authenticated")
 }

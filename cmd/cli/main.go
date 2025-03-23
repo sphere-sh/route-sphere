@@ -4,6 +4,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"log/slog"
 	"os"
+	"reflect"
 	cli_utils "route-sphere/cmd/cli/utils"
 	"route-sphere/configuration"
 )
@@ -60,18 +61,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
-	// Setup logging
-	//
-	logFile, err = os.OpenFile(routeSpherePath+"/cli/logs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-
-	var logLevel = new(slog.LevelVar)
-
-	logger := slog.NewJSONHandler(logFile, &slog.HandlerOptions{Level: logLevel})
-	slog.SetDefault(slog.New(logger))
 }
 
 func main() {
@@ -103,9 +92,35 @@ func main() {
 
 	commands := commandGroup.GetCommands()
 
-	if commands == nil {
-		slog.Error("CLI features not found")
-		os.Exit(1)
+	// Find and execute the selected command
+	cmdValue := reflect.ValueOf(commands)
+	cmdType := cmdValue.Type()
+
+	// Loop through fields to find which command was selected (non-nil)
+	for i := 0; i < cmdValue.NumField(); i++ {
+		fieldValue := cmdValue.Field(i)
+		fieldName := cmdType.Field(i).Name
+
+		// Check if this field is a pointer and not nil
+		if fieldValue.Kind() == reflect.Ptr && !fieldValue.IsNil() {
+			slog.Info("Executing command", "command", fieldName)
+
+			// Call Run() method if it exists
+			method := fieldValue.MethodByName("Run")
+			if method.IsValid() {
+				// Create argument list - pass the command itself as the argument
+				args := []reflect.Value{fieldValue}
+				method.Call(args)
+			} else {
+				slog.Error("Command does not implement Run method", "command", fieldName)
+				os.Exit(1)
+			}
+
+			// Exit after executing the command
+			return
+		}
 	}
 
+	slog.Error("No command selected")
+	os.Exit(1)
 }
