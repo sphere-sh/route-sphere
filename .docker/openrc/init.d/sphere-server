@@ -1,0 +1,18 @@
+#!/sbin/openrc-run
+
+name="Sphere server API"
+description="server API for Route Sphere"
+command="/bin/sphere-server"
+command_args=""
+pidfile="/var/run/sphere-server.pid"
+command_background="yes"
+output_log="/var/log/sphere-server.log"
+error_log="/var/log/sphere-server.err"
+start_stop_daemon_args="--user sphere-server --group sphere-server"
+
+
+depend() {
+    need net
+    use logger dns
+    after firewall
+}

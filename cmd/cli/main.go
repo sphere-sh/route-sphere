@@ -1,100 +1,107 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/alexflint/go-arg"
+	"gopkg.in/yaml.v3"
 	"log/slog"
-	"net/http"
 	"os"
-	cli_commands "route-sphere/cmd/cli/commands"
+	cli_utils "route-sphere/cmd/cli/utils"
+	"route-sphere/configuration"
 )
 
+var (
+	// Storage related paths
+	//
+	routeSpherePath = "/etc/route-sphere"
+
+	// Configuration
+	//
+	staticConfigurationPath = "/etc/route-sphere/route-sphere.yaml"
+
+	// Logging
+	//
+	logFile *os.File
+)
+
+func getEnv(key, defaultValue string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		return defaultValue
+	}
+	return value
+}
+
 func init() {
-	err := os.MkdirAll("/etc/route-sphere/cli", 0755)
+	var err error
+
+	// Setup paths for route sphere and static configuration file
+	//
+	routeSpherePath = getEnv("ROUTE_SPHERE_PATH", routeSpherePath)
+	if _, err := os.Stat(routeSpherePath); os.IsNotExist(err) {
+		slog.Error("Route Sphere path not found", "path", routeSpherePath)
+		os.Exit(1)
+	}
+
+	staticConfigurationPath = getEnv("ROUTE_SPHERE_CONFIG_PATH", staticConfigurationPath)
+	if _, err := os.Stat(staticConfigurationPath); os.IsNotExist(err) {
+		slog.Error("Static configuration file not found", "path", staticConfigurationPath)
+		os.Exit(1)
+	}
+
+	// Create CLI path
+	//
+	err = os.MkdirAll(routeSpherePath+"/cli", 0755)
 	if err != nil {
 		panic(err)
 	}
+
+	// Create storage path for CLI logs.
+	//
+	os.MkdirAll(routeSpherePath+"/cli/logs", 0755)
+	if err != nil {
+		panic(err)
+	}
+
+	// Setup logging
+	//
+	logFile, err = os.OpenFile(routeSpherePath+"/cli/logs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	var logLevel = new(slog.LevelVar)
+
+	logger := slog.NewJSONHandler(logFile, &slog.HandlerOptions{Level: logLevel})
+	slog.SetDefault(slog.New(logger))
 }
 
 func main() {
+	defer logFile.Close()
 
-	var args struct {
-		AuthenticationLogin  *cli_commands.AuthenticationLogin  `arg:"subcommand:authentication:login"`
-		AuthenticationLogout *cli_commands.AuthenticationLogout `arg:"subcommand:authentication:logout"`
-
-		// Connections related commands
-		//
-		ConnectionsList   *cli_commands.ConnectionsList   `arg:"subcommand:connections:list"`
-		ConnectionInstall *cli_commands.ConnectionInstall `arg:"subcommand:connections:install"`
-	}
-
-	arg.MustParse(&args)
-
-	if args.AuthenticationLogin != nil {
-		args.AuthenticationLogin.Run(args.AuthenticationLogin)
-	}
-
-	// Check if `session` file exists in the /etc/route-sphere/cli directory
+	// Load static configuration
 	//
-	_, err := os.Stat("/etc/route-sphere/cli/session")
-	if os.IsNotExist(err) {
-		slog.Error("Please authenticate using `route-sphere authentication:login`")
+	var staticConfiguration configuration.StaticConfiguration
+
+	fileContent, err := os.ReadFile(staticConfigurationPath)
+	if err != nil {
+		slog.Error("Failed to read static configuration file", "error", err)
 		os.Exit(1)
 	}
 
-	// Verify that the session is valid
-	//
-	err = sessionCheck()
+	err = yaml.Unmarshal(fileContent, &staticConfiguration)
 	if err != nil {
-		slog.Error("Failed to authenticate", "error", err)
+		slog.Error("Failed to unmarshal static configuration file", "error", err)
 		os.Exit(1)
 	}
 
-	if args.AuthenticationLogout != nil {
-		args.AuthenticationLogout.Run(args.AuthenticationLogout)
-	}
-
-	if args.ConnectionsList != nil {
-		args.ConnectionsList.Run(args.ConnectionsList)
-	}
-
-	if args.ConnectionInstall != nil {
-		args.ConnectionInstall.Run(args.ConnectionInstall)
-	}
-
-}
-
-func sessionCheck() error {
-	sessionFile, err := os.ReadFile("/etc/route-sphere/cli/session")
+	// Get CLI features
+	//
+	feature, err := cli_utils.GetCLICommands(staticConfiguration)
 	if err != nil {
-		return fmt.Errorf("Failed to read session file: %w", err)
+		slog.Error("Failed to get CLI features", "error", err)
+		os.Exit(1)
 	}
 
-	session := []string{}
-	err = json.Unmarshal(sessionFile, &session)
-	if err != nil {
-		return fmt.Errorf("Failed to unmarshal session file: %w", err)
-	}
+	arg.MustParse(feature)
 
-	req, err := http.NewRequest("GET", "https://route.api.sphere.sh/user", nil)
-	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
-	}
-
-	for _, cookie := range session {
-		req.Header.Add("Cookie", cookie)
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("session check failed: %w", err)
-	}
-
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Failed to authenticate: %d", resp.StatusCode)
-	}
-
-	return nil
 }

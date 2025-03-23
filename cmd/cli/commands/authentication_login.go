@@ -59,4 +59,11 @@ func (cmd *AuthenticationLogin) Run(args *AuthenticationLogin) {
 	if err != nil {
 		slog.Error("Failed to write session file", "error", err)
 	}
+
+	os.MkdirAll("/etc/route-sphere/cloud", 0755)
+
+	err = os.WriteFile("/etc/route-sphere/cloud/session", cookieJson, 0644)
+	if err != nil {
+		slog.Error("Failed to write session file", "error", err)
+	}
 }

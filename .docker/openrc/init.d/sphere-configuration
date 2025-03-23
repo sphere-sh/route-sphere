@@ -1,0 +1,19 @@
+#!/sbin/openrc-run
+
+name="Sphere Configuration API"
+description="Configuration API for Route Sphere"
+command="/bin/sphere-configuration"
+command_args=""
+pidfile="/var/run/sphere-configuration.pid"
+env="ROUTE_SPHERE_CONFIGURATION_CONFIG_PATH=/etc/route-sphere/route-sphere.yaml"
+command_background="yes"
+output_log="/var/log/sphere-configuration.log"
+error_log="/var/log/sphere-configuration.err"
+start_stop_daemon_args="--user sphere-configuration --group sphere-configuration"
+
+
+depend() {
+    need net
+    use logger dns
+    after firewall
+}
