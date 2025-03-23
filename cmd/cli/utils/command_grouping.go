@@ -35,20 +35,11 @@ func (c *LocalCliCommands) GetFeatures() interface{} {
 
 // GetCLICommandGroup - function used to get CLI commands based on the static config.
 func GetCLICommandGroup(staticConfiguration configuration.StaticConfiguration) (CliCommandsGroup, error) {
-	var functionGroups = make(map[string]CliCommandsGroup)
-
-	// Add CLI commands groups here
-	//
-	functionGroups["cloud"] = &CloudCliCommands{}
-	functionGroups["local"] = &LocalCliCommands{}
-
-	// Get CLI commands based on the static configuration
-	//
 	switch staticConfiguration.Cloud.Enabled {
 	case true:
-		return functionGroups["cloud"], nil
+		return &CloudCliCommands{}, nil
 	case false:
-		return functionGroups["local"], nil
+		return &LocalCliCommands{}, nil
 	default:
 		return nil, errors.New(ErrInvalidStaticConfiguration)
 	}
