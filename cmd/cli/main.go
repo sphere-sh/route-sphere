@@ -67,7 +67,25 @@ func init() {
 func main() {
 	defer logFile.Close()
 
-	// Load static configuration
+	// Construct context of the application.
+	//
+	ctx := context.Background()
+
+	// When we have a session we add it to the context. Otherwise, we put an
+	// empty string in the context indicating that we don't have a session.
+	//
+	if cli_utils.HasSession() {
+		sessionString, err := cli_utils.GetSession()
+		if err != nil {
+			slog.Error("Failed to get session", "error", err)
+			os.Exit(1)
+		}
+		ctx = context.WithValue(ctx, "session", sessionString)
+	} else {
+		ctx = context.WithValue(ctx, "session", "")
+	}
+
+	// Load static configuration and put it in the context.
 	//
 	var staticConfiguration configuration.StaticConfiguration
 
@@ -82,31 +100,12 @@ func main() {
 		slog.Error("Failed to unmarshal static configuration file", "error", err)
 		os.Exit(1)
 	}
+	ctx = context.WithValue(ctx, "configuration", staticConfiguration)
 
-	// Get CLI features
+	// Get CLI features for the current context.
 	//
-	commandGroup, err := cli_utils.GetCLICommandGroup(staticConfiguration)
-	if err != nil {
-		slog.Error("Failed to get CLI features", "error", err)
-		os.Exit(1)
-	}
-
+	commandGroup, err := cli_utils.GetCLICommandGroup(&ctx)
 	commands := commandGroup.GetCommands()
-
-	// Create context with session attached
-	//
-	ctx := context.Background()
-
-	// When session exists, add it to the context.
-	//
-	if cli_utils.HasSession() {
-		sessionString, err := cli_utils.GetSession()
-		if err != nil {
-			slog.Error("Failed to get session", "error", err)
-			os.Exit(1)
-		}
-		ctx = context.WithValue(ctx, "session", sessionString)
-	}
 
 	// Find and execute the selected command
 	//

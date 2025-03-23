@@ -1,6 +1,7 @@
 package cli_utils
 
 import (
+	"context"
 	"errors"
 	"github.com/alexflint/go-arg"
 	cli_commands "route-sphere/cmd/cli/commands"
@@ -38,8 +39,17 @@ func (c *LocalCliCommands) GetCommands() interface{} {
 }
 
 // GetCLICommandGroup - function used to get CLI commands based on the static config.
-func GetCLICommandGroup(staticConfiguration configuration.StaticConfiguration) (CliCommandsGroup, error) {
-	switch staticConfiguration.Cloud.Enabled {
+func GetCLICommandGroup(ctx *context.Context) (CliCommandsGroup, error) {
+
+	// Grab configuration from context
+	//
+	staticConfiguration := (*ctx).Value("configuration")
+	if staticConfiguration == nil {
+		return nil, errors.New("CONFIGURATION_NOT_FOUND_IN_CONTEXT")
+	}
+	c := staticConfiguration.(configuration.StaticConfiguration)
+
+	switch c.Cloud.Enabled {
 	case true:
 		return &CloudCliCommands{}, nil
 	case false:
