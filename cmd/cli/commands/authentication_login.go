@@ -20,7 +20,7 @@ func (cmd *AuthenticationLogin) Run(args *AuthenticationLogin, ctx *context.Cont
 	body := fmt.Sprintf(`{"email": "%s", "password": "%s"}`, args.Username, args.Password)
 
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", "https://route.api.sphere.sh/login", strings.NewReader(body))
+	req, err := http.NewRequest("POST", os.Getenv("ROUTE_SPHERE_API_BASE_URL")+"/login", strings.NewReader(body))
 	if err != nil {
 		panic(err)
 	}
@@ -40,33 +40,26 @@ func (cmd *AuthenticationLogin) Run(args *AuthenticationLogin, ctx *context.Cont
 		os.Exit(1)
 	}
 
-	// Cookies to JSON.
+	// Extract cookies from response
 	//
-	var cookies []string = make([]string, 0)
+	var cookies []*http.Cookie
 	for _, cookie := range resp.Cookies() {
-		cookies = append(cookies, cookie.String())
+		cookies = append(cookies, cookie)
 	}
 
-	// JSON encode cookies
+	// Store cookies to `/etc/route-sphere/cli/session`
 	//
 	cookieJson, err := json.Marshal(cookies)
 	if err != nil {
-		panic(err)
+		slog.Error("Failed to marshal cookies", "error", err)
+		os.Exit(1)
 	}
 
-	// Write cookies to /etc/route-sphere/cli/session
-	//
 	err = os.WriteFile("/etc/route-sphere/cli/session", cookieJson, 0644)
 	if err != nil {
 		slog.Error("Failed to write session file", "error", err)
+		os.Exit(1)
 	}
-
-	os.MkdirAll("/etc/route-sphere/cloud", 0755)
-
-	err = os.WriteFile("/etc/route-sphere/cloud/session", cookieJson, 0644)
-	if err != nil {
-		slog.Error("Failed to write session file", "error", err)
-	}
-
+	
 	slog.Info("Successfully authenticated")
 }

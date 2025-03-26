@@ -12,6 +12,15 @@ type ConnectionInstall struct {
 
 func (cmd *ConnectionInstall) Run(args *ConnectionInstall, ctx *context.Context) {
 
+	// Before we start the installation process, we must check if we have
+	// a session available otherwise we cannot proceed.
+	//
+	session := (*ctx).Value("session")
+	if session == nil || session == "" {
+		slog.Error("CLI not authenticated, please login using 'route-sphere authentication:login' command")
+		os.Exit(1)
+	}
+
 	slog.Info("Installing connection", "id", args.Id)
 
 	// First, we have to make sure that the connection exists in the cloud.

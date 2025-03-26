@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"reflect"
+	"route-sphere/cmd/cli/cloud"
 	cli_utils "route-sphere/cmd/cli/utils"
 	"route-sphere/configuration"
 )
@@ -70,6 +71,11 @@ func main() {
 	// Construct context of the application.
 	//
 	ctx := context.Background()
+
+	// Add cloud client to context
+	//
+	cloudClient := cloud.NewCloudHTTPClient()
+	ctx = context.WithValue(ctx, "cloudClient", cloudClient)
 
 	// When we have a session we add it to the context. Otherwise, we put an
 	// empty string in the context indicating that we don't have a session.

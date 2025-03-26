@@ -6,8 +6,8 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"io"
 	"log/slog"
-	"net/http"
 	"os"
+	"route-sphere/cmd/cli/cloud"
 )
 
 type V1ConnectionsListResponse struct {
@@ -26,41 +26,13 @@ type ConnectionList struct{}
 
 func (cmd *ConnectionList) Run(args *ConnectionList, ctx *context.Context) {
 
-	// Get session from context.
-	//
-	session := (*ctx).Value("session")
-	if session == nil {
-		slog.Error("CLI not authenticated, please login using 'route-sphere authentication:login' command")
-		os.Exit(1)
-	}
+	cloudClient := (*ctx).Value("cloudClient").(*cloud.CloudHTTPClient)
 
 	// Collect all connections from the Route Sphere cloud.
 	//
-	req, err := http.NewRequest("GET", "https://route.api.sphere.sh/api/v1/connections", nil)
+	resp, err := cloudClient.Get("/api/v1/connections")
 	if err != nil {
 		slog.Error("Failed to create HTTP request", "error", err)
-		os.Exit(1)
-	}
-
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Content-Type", "application/json")
-
-	// Add session to the request as cookie
-	//
-	sessionString := session.(string)
-	sessionP := []string{}
-	err = json.Unmarshal([]byte(sessionString), &sessionP)
-
-	for _, cookie := range sessionP {
-		req.Header.Add("Cookie", cookie)
-	}
-
-	// Send request
-	//
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		slog.Error("Failed to send HTTP request", "error", err)
 		os.Exit(1)
 	}
 
